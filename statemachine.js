@@ -16,23 +16,29 @@
 
     /* ----- Helpers ----- */
 
-    var isString = function(value) {
-        return Object.prototype.toString.call(value) === '[object String]';
+    var toString = Object.prototype.toString;
+
+    var isString = StateMachine.isString = function(value) {
+        return toString.call(value) === '[object String]';
     };
 
-    var isFunction = function(value) {
-        return Object.prototype.toString.call(value) === '[object Function]';
+    var isNumber = StateMachine.isNumber = function(value) {
+        return toString.call(value) === '[object Number]';
     };
 
-    var isArray = Array.isArray || function isArray(value) {
-        return Object.prototype.toString.call(value) === '[object Array]';
+    var isFunction = StateMachine.isFunction = function(value) {
+        return toString.call(value) === '[object Function]';
     };
 
-    var isIterable = function(value) {
-        return value.length !== undefined && !isString(value) && !isFunction(value);
+    var isArray = StateMachine.isArray = Array.isArray || function (value) {
+        return toString.call(value) === '[object Array]';
     };
 
-    var arrayFrom = function(value) {
+    var isIterable = StateMachine.isIterable = function(value) {
+        return isNumber(value.length) && !isString(value) && !isFunction(value);
+    };
+
+    var arrayFrom = StateMachine.arrayFrom = function(value) {
         if (value === undefined || value === null) {
             return [];
         } else if (isIterable(value)) {
