@@ -14,31 +14,63 @@
         return this;
     };
 
+    /* ----- StateMachine Functions ----- */
+
+    StateMachine.init = function(obj, states,
+            callEntryIfTransitBack, callExitIfTransitBack) {
+        var fsm;
+        obj = obj || {};
+
+        fsm = initFsm(arrayFrom(states));
+        fsm.scope = obj;
+
+        obj.handleStateEvent = handleStateEventFactory();
+        return obj;
+    };
+
+    var initFsm = function(states) {
+        var statesMap = {};
+
+        for (var i = 0, len = states.length; i < len; i++) {
+            initState(statesMap, states[i]);
+        }
+
+        return {
+            statesMap: statesMap
+        };
+    };
+
+    var initState = function(statesMap, config, outerState) {
+    };
+
+    var handleStateEventFactory = function() {
+        return function handleStateEvent(trigger, actionArgs, guardArgs) {
+        };
+    };
+
     /* ----- Helpers ----- */
 
-    var toString = Object.prototype.toString;
-
-    var isString = StateMachine.isString = function(value) {
+    var isString = function(value) {
         return toString.call(value) === '[object String]';
     };
 
-    var isNumber = StateMachine.isNumber = function(value) {
+    var isNumber = function(value) {
         return toString.call(value) === '[object Number]';
     };
 
-    var isFunction = StateMachine.isFunction = function(value) {
+    var isFunction = function(value) {
         return toString.call(value) === '[object Function]';
     };
 
-    var isArray = StateMachine.isArray = Array.isArray || function (value) {
+    var isArray = Array.isArray || function (value) {
         return toString.call(value) === '[object Array]';
     };
 
-    var isIterable = StateMachine.isIterable = function(value) {
+    var isIterable = function(value) {
         return isNumber(value.length) && !isString(value) && !isFunction(value);
     };
 
-    var arrayFrom = StateMachine.arrayFrom = function(value) {
+    var arrayFrom = function(value) {
         if (value === undefined || value === null) {
             return [];
         } else if (isIterable(value)) {
@@ -53,13 +85,16 @@
         return [value];
     };
 
-    /* ----- StateMachine Functions ----- */
+    var toString = Object.prototype.toString;
 
-    StateMachine.init = function(obj, states,
-            callEntryIfTransitBack, callExitIfTransitBack) {
-        obj = obj || {};
-        states = arrayFrom(states);
-        return obj;
-    };
+    /* ----- Export Extra Functions ----- */
 
+    if (global.STATEMACHINE_EXPORT_EXTRA) {
+        StateMachine.isString = isString;
+        StateMachine.isNumber = isNumber;
+        StateMachine.isFunction = isFunction;
+        StateMachine.isArray = isArray;
+        StateMachine.isIterable = isIterable;
+        StateMachine.arrayFrom = arrayFrom;
+    }
 })(this);
