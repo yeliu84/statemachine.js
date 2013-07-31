@@ -16,31 +16,68 @@
 
     /* ----- StateMachine Functions ----- */
 
-    StateMachine.init = function(obj, states,
+    StateMachine.init = function(scope, states,
             callEntryIfTransitBack, callExitIfTransitBack) {
         var fsm;
-        obj = obj || {};
+        scope = scope || {};
 
-        fsm = initFsm(arrayFrom(states));
-        fsm.scope = obj;
+        fsm = initFsm(scope, arrayFrom(states));
 
-        obj.handleStateEvent = handleStateEventFactory();
-        return obj;
+        scope.handleStateEvent = handleStateEventFactory();
+        scope.fsm = fsm;
+
+        return scope;
     };
 
-    var initFsm = function(states) {
-        var statesMap = {};
+    var initFsm = function(scope, states) {
+        var fsm = {
+            scope: scope,
+            statesMap: {}
+        };
+        var state;
 
         for (var i = 0, len = states.length; i < len; i++) {
-            initState(statesMap, states[i]);
+            state = initState(states[i]);
+            fsm.statesMap[state.fqn] = state;
         }
 
-        return {
-            statesMap: statesMap
-        };
+        return fsm;
     };
 
-    var initState = function(statesMap, config, outerState) {
+    var initState = function initState(config, outerState) {
+        var state = {};
+        var trans;
+
+        state.name = config.name;
+        state.entry = config.entry;
+        state.exit = config.exit;
+
+        if (outerState) {
+            state.fqn = outerState.fqn + '.' + state.name;
+            state.outerState = outerState;
+        } else {
+            state.fqn = state.name;
+        }
+
+        config.transitions = arrayFrom(config.transitions);
+        state.transitions = [];
+        for (var i = 0, len = config.transitions.length; i < len; i++) {
+            trans = config.transitions[i];
+            state.transitions[i] = {
+                trigger: trans.trigger,
+                dest: trans.dest,
+                action: trans.action,
+                guard: trans.guard
+            };
+        }
+
+        config.innerStates = arrayFrom(config.innerStates);
+        state.innerStates = [];
+        for (var i = 0, len = config.innerStates.length; i < len; i++) {
+            state.innerStates[i] = initState(config.innerStates[i], state);
+        }
+
+        return state;
     };
 
     var handleStateEventFactory = function() {
@@ -85,7 +122,18 @@
         return [value];
     };
 
+    var functionFrom = function(scope, fn) {
+        if (isFunction(fn)) {
+            return fn;
+        } else if (isString(fn) && isFunction(scope[fn])) {
+            return scope[fn];
+        }
+        return noop;
+    };
+
     var toString = Object.prototype.toString;
+
+    var noop = function() {};
 
     /* ----- Export Extra Functions ----- */
 
