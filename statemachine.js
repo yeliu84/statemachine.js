@@ -1,4 +1,6 @@
 (function(global) {
+    'use strict';
+
     var prevStateMachine = global.StateMachine;
 
     var StateMachine = global.StateMachine = {
@@ -16,23 +18,27 @@
 
     /* ----- StateMachine Functions ----- */
 
-    StateMachine.init = function(scope, states,
+    StateMachine.init = function(host, states,
             callEntryIfTransitBack, callExitIfTransitBack) {
         var fsm;
-        scope = scope || {};
+        host = host || {};
 
-        fsm = initFsm(scope, arrayFrom(states));
+        fsm = initFsm(host, arrayFrom(states));
+        fsm.callEntryIfTransitBack = callEntryIfTransitBack;
+        fsm.callExitIfTransitBack = callExitIfTransitBack;
 
-        scope.handleStateEvent = handleStateEventFactory();
-        scope.fsm = fsm;
+        host.handleStateTrigger = handleStateTriggerFactory(fsm);
+        host.fsm = fsm;
 
-        return scope;
+        return host;
     };
 
-    var initFsm = function(scope, states) {
+    var initFsm = function(host, states) {
         var fsm = {
-            scope: scope,
-            statesMap: {}
+            host: host,
+            statesMap: {},
+            currentState: null,
+            currentStateStack: []
         };
         var state;
 
@@ -45,22 +51,23 @@
     };
 
     var initState = function initState(config, outerState) {
-        var state = {};
+        var state = {
+            name: config.name,
+            fqn: config.name,
+            entry: config.entry,
+            exit: config.exit,
+            transitions: [],
+            outerState: null,
+            innerStates: [],
+        };
         var trans;
-
-        state.name = config.name;
-        state.entry = config.entry;
-        state.exit = config.exit;
 
         if (outerState) {
             state.fqn = outerState.fqn + '.' + state.name;
             state.outerState = outerState;
-        } else {
-            state.fqn = state.name;
         }
 
         config.transitions = arrayFrom(config.transitions);
-        state.transitions = [];
         for (var i = 0, len = config.transitions.length; i < len; i++) {
             trans = config.transitions[i];
             state.transitions[i] = {
@@ -72,7 +79,6 @@
         }
 
         config.innerStates = arrayFrom(config.innerStates);
-        state.innerStates = [];
         for (var i = 0, len = config.innerStates.length; i < len; i++) {
             state.innerStates[i] = initState(config.innerStates[i], state);
         }
@@ -80,9 +86,103 @@
         return state;
     };
 
-    var handleStateEventFactory = function() {
-        return function handleStateEvent(trigger, actionArgs, guardArgs) {
+    var handleStateTriggerFactory = function(fsm) {
+        var host = fsm.host;
+
+        return function handleStateTrigger(trigger, actionArgs, guardArgs) {
+            var cur = fsm.currentState;
+            var transitions = getTransitions(cur, trigger);
+            var trans;
+            var next;
+
+            for (var i = 0, len = transitions.length; i < len; i++) {
+                trans = transitions[i];
+                if (functionApply(trans.guard, host, guardArgs) !== false) {
+                    next = getState(fsm, trans.dest);
+                    if (next) {
+                        functionApply(trans.action, host, actionArgs);
+                        if (next !== cur || fsm.callExitIfTransitBack) {
+                            doExitAction(fsm, cur, next);
+                        }
+                        (function doChangeState(cur, next) {
+                            changeState(fsm, cur, next);
+                            if (next !== cur || fsm.callEntryIfTransitBack()) {
+                                doEntryAction(fsm);
+                            }
+                            if (next.innerStates.length > 0) {
+                                doChangeState(next, next.innerStates[0]);
+                            }
+                        })(cur, next);
+                        break;
+                    }
+                }
+            }
         };
+    };
+
+    var getTransitions = function(state, trigger) {
+        var result = [];
+        var trans;
+
+        if (state) {
+            for (var i = 0, len = state.transitions.length; i < len; i++) {
+                trans = state.transitions[i];
+                if (trans.trigger === trigger) {
+                    result.push(trans);
+                }
+            }
+        }
+
+        return result;
+    };
+
+    var getState = function getState(fsm, stateName) {
+        var state;
+        var outer = fsm.currentState ? fsm.currentState.outerState : null;
+
+        if (outer) {
+            state = fsm.statesMap[outer.fqn + '.' + stateName];
+            if (!state) {
+                pushCurrentState(fsm, outer);
+                state = getState(fsm, stateName);
+                popCurrentState(fsm);
+            }
+        } else {
+            state = fsm.statesMap[stateName];
+        }
+
+        return state;
+    };
+
+    var pushCurrentState = function(fsm, newCur) {
+        fsm.currentStateStack.push(fsm.currentState);
+        fsm.currentState = newCur;
+    };
+
+    var popCurrentState = function(fsm) {
+        fsm.currentState = fsm.currentStateStack.pop();
+    };
+
+    var doEntryAction = function(fsm) {
+        var host = fsm.host;
+
+        functionApply(fsm.currentState.entry, host);
+        host.handleStateTrigger('.');
+    };
+
+    var doExitAction = function doExitAction(fsm, cur, next) {
+        var host = fsm.host;
+
+        functionApply(cur.exit, host);
+
+        if (cur.outerState && cur.outerState !== next.outerState) {
+            doExitAction(fsm, cur.outerState, next);
+        }
+    };
+
+    var changeState = function(fsm, cur, next) {
+        fsm.previousState = cur;
+        fsm.currentState = next;
     };
 
     /* ----- Helpers ----- */
@@ -122,13 +222,18 @@
         return [value];
     };
 
-    var functionFrom = function(scope, fn) {
+    var functionFrom = function(fn, scope) {
+        scope = scope || global;
         if (isFunction(fn)) {
             return fn;
         } else if (isString(fn) && isFunction(scope[fn])) {
             return scope[fn];
         }
         return noop;
+    };
+
+    var functionApply = function(fn, scope, args) {
+        return functionFrom(fn, scope).apply(scope, arrayFrom(args));
     };
 
     var toString = Object.prototype.toString;
