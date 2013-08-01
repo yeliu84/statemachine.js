@@ -163,6 +163,11 @@
         fsm.currentState = fsm.currentStateStack.pop();
     };
 
+    var changeState = function(fsm, cur, next) {
+        fsm.previousState = cur;
+        fsm.currentState = next;
+    };
+
     var doEntryAction = function(fsm) {
         var host = fsm.host;
 
@@ -180,12 +185,13 @@
         }
     };
 
-    var changeState = function(fsm, cur, next) {
-        fsm.previousState = cur;
-        fsm.currentState = next;
-    };
-
     /* ----- Helpers ----- */
+
+    var isObject = function(value) {
+        return (value !== undefined
+            && value !== null
+            && toString.call(value) === '[object Object]');
+    };
 
     var isString = function(value) {
         return toString.call(value) === '[object String]';
@@ -199,25 +205,24 @@
         return toString.call(value) === '[object Function]';
     };
 
-    var isArray = Array.isArray || function (value) {
+    var isArray = Array.isArray || function(value) {
         return toString.call(value) === '[object Array]';
     };
 
-    var isIterable = function(value) {
-        return isNumber(value.length) && !isString(value) && !isFunction(value);
+    var isArrayLike = function(value) {
+        return (isNumber(value.length)
+            && !isObject(value)
+            && !isString(value)
+            && !isFunction(value));
     };
 
     var arrayFrom = function(value) {
         if (value === undefined || value === null) {
             return [];
-        } else if (isIterable(value)) {
-            var result = [];
-            for (var i = 0, len = value.length; i < len; i++) {
-                result.push(value[i]);
-            }
-            return result;
         } else if (isArray(value)) {
             return value;
+        } else if (isArrayLike(value)) {
+            return Array.prototype.slice.call(value, 0);
         }
         return [value];
     };
@@ -247,7 +252,20 @@
         StateMachine.isNumber = isNumber;
         StateMachine.isFunction = isFunction;
         StateMachine.isArray = isArray;
-        StateMachine.isIterable = isIterable;
+        StateMachine.isArrayLike = isArrayLike;
         StateMachine.arrayFrom = arrayFrom;
+        StateMachine.functionFrom = functionFrom;
+        StateMachine.functionApply = functionApply;
+
+        StateMachine.initFsm = initFsm;
+        StateMachine.initState = initState;
+        StateMachine.handleStateTriggerFactory = handleStateTriggerFactory;
+        StateMachine.getTransitions = getTransitions;
+        StateMachine.getState = getState;
+        StateMachine.pushCurrentState = pushCurrentState;
+        StateMachine.popCurrentState = popCurrentState;
+        StateMachine.changeState = changeState;
+        StateMachine.doEntryAction = doEntryAction;
+        StateMachine.doExitAction = doExitAction;
     }
 })(this);
