@@ -228,13 +228,12 @@
     };
 
     var functionFrom = function(fn, scope) {
-        scope = scope || global;
         if (isFunction(fn)) {
             return fn;
-        } else if (isString(fn) && isFunction(scope[fn])) {
+        } else if (isString(fn) && isObject(scope) && isFunction(scope[fn])) {
             return scope[fn];
         }
-        return noop;
+        return nop;
     };
 
     var functionApply = function(fn, scope, args) {
@@ -243,7 +242,7 @@
 
     var toString = Object.prototype.toString;
 
-    var noop = function() {};
+    var nop = function() {};
 
     /* ----- Export Extra Functions ----- */
 
@@ -256,6 +255,7 @@
         StateMachine.arrayFrom = arrayFrom;
         StateMachine.functionFrom = functionFrom;
         StateMachine.functionApply = functionApply;
+        StateMachine.nop = nop;
 
         StateMachine.initFsm = initFsm;
         StateMachine.initState = initState;
