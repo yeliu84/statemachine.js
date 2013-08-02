@@ -29,6 +29,8 @@
             expect(StateMachine.doExitAction).toBeDefined();
         });
 
+        /* ----- Helpers ----- */
+
         describe('isString', function() {
             it('returns true is value is string', function() {
                 expect(StateMachine.isString('123')).toBe(true);
@@ -210,6 +212,43 @@
                 expect(obj.func).toHaveBeenCalledWith(123, '123');
             });
 
+        });
+
+        /* ----- StateMachine Functions ----- */
+
+        describe('initState', function() {
+            it('initializes well formatted simple state', function() {
+                var config = {
+                    name: 'SimpleState',
+                    entry: 'entryFn',
+                    exit: 'exitFn',
+                    transitions: [{
+                        trigger: 'someEvent',
+                        dest: 'SimpleDestination',
+                        action: 'toSimpleDestinationAction',
+                        guard: 'toSimpleDestinationGuard'
+                    }, {
+                        trigger: 'anotherEvent',
+                        dest: 'AnotherSimpleDestination',
+                        action: 'toAnotherSimpleDestinationAction',
+                        guard: 'toAnotherSimpleDestinationGuard'
+                    }]
+                };
+                var state = StateMachine.initState(config);
+
+                expect(state).toBeDefined();
+                expect(state.name).toEqual(config.name);
+                expect(state.fqn).toEqual(config.name);
+                expect(state.entry).toEqual(config.entry);
+                expect(state.exit).toEqual(config.exit);
+                expect(state.outerState).toBeNull();
+                expect(state.innerStates).toEqual([]);
+                expect(state.transitions.length).toBe(2);
+                for (var i = 0, len = state.transitions.length; i < len; i++) {
+                    expect(state.transitions[i]).not.toBe(config.transitions[i]);
+                    expect(state.transitions[i]).toEqual(config.transitions[i]);
+                }
+            });
         });
     });
 })(this);
