@@ -42,6 +42,8 @@
         };
         var state;
 
+        states = arrayFrom(states);
+
         for (var i = 0, len = states.length; i < len; i++) {
             state = initState(states[i]);
             fsm.statesMap[state.fqn] = state;
@@ -51,6 +53,16 @@
     };
 
     var initState = function initState(config, outerState) {
+        if (isString(config)) {
+            config = {name: config};
+        } else {
+            config = config || {};
+        }
+
+        if (!isString(config.name)) {
+            config.name = 'UnnamedState';
+        }
+
         var state = {
             name: config.name,
             fqn: config.name,

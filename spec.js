@@ -217,7 +217,7 @@
         /* ----- StateMachine Functions ----- */
 
         describe('initState', function() {
-            it('initializes well formatted simple state', function() {
+            it('creates a state from full configuration', function() {
                 var config = {
                     name: 'SimpleState',
                     entry: 'entryFn',
@@ -248,6 +248,61 @@
                     expect(state.transitions[i]).not.toBe(config.transitions[i]);
                     expect(state.transitions[i]).toEqual(config.transitions[i]);
                 }
+            });
+
+            it('creates a state from no configuration', function() {
+                var state = StateMachine.initState();
+
+                expect(state).toBeDefined();
+                expect(state.name).toEqual('UnnamedState');
+                expect(state.fqn).toEqual('UnnamedState');
+                expect(state.entry).not.toBeDefined()
+                expect(state.exit).not.toBeDefined();
+                expect(state.outerState).toBeNull();
+                expect(state.innerStates).toEqual([]);
+                expect(state.transitions.length).toBe(0);
+            });
+
+            it('creates a state if a string is provided instead of configuration object', function() {
+                var state = StateMachine.initState('SimpleState');
+
+                expect(state).toBeDefined();
+                expect(state.name).toEqual('SimpleState');
+                expect(state.fqn).toEqual('SimpleState');
+                expect(state.entry).not.toBeDefined()
+                expect(state.exit).not.toBeDefined();
+                expect(state.outerState).toBeNull();
+                expect(state.innerStates).toEqual([]);
+                expect(state.transitions.length).toBe(0);
+            });
+
+            it('creates an inner state if outer state is provided', function() {
+                var outer = StateMachine.initState('Outer');
+                var inner = StateMachine.initState('Inner', outer);
+
+                expect(inner).toBeDefined();
+                expect(inner.name).toEqual('Inner');
+                expect(inner.fqn).toEqual('Outer.Inner');
+                expect(inner.outerState).toBe(outer);
+            });
+
+            it('creates a state with inner states', function() {
+                var state = StateMachine.initState({
+                    name: 'A',
+                    innerStates: [{
+                        name: 'B'
+                    }, {
+                        name: 'C'
+                    }, {
+                        name: 'D'
+                    }]
+                });
+
+                expect(state).toBeDefined();
+                expect(state.innerStates.length).toBe(3);
+                expect(state.innerStates[0].fqn).toEqual('A.B');
+                expect(state.innerStates[1].fqn).toEqual('A.C');
+                expect(state.innerStates[2].fqn).toEqual('A.D');
             });
         });
     });
