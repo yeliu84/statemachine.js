@@ -216,6 +216,28 @@
 
         /* ----- StateMachine Functions ----- */
 
+        describe('initFsm', function() {
+            it('creates fsm object', function() {
+                var host = {};
+                var states = [{
+                    name: 'A',
+                    innerStates: [{
+                        name: 'D'
+                    }, {
+                        name: 'E'
+                    }]
+                }, {
+                    name: 'B'
+                }, {
+                    name: 'C',
+                    innerStates: [{
+                        name: 'F'
+                    }]
+                }];
+                var fsm = StateMachine.initFsm(host, states);
+            });
+        });
+
         describe('initState', function() {
             it('creates a state from full configuration', function() {
                 var config = {
