@@ -376,5 +376,60 @@
                 expect(state.innerStates[2].fqn).toEqual('A.D');
             });
         });
+
+        describe('handleStateTriggerFactory', function() {
+            it('creates a function', function() {
+                var func = StateMachine.handleStateTriggerFactory({});
+                expect(typeof func).toEqual('function');
+            });
+        });
+
+        describe('getTransitions', function() {
+            it('returns empty array if state is falsy', function() {
+                var ret = StateMachine.getTransitions();
+                expect(ret).toEqual([]);
+            });
+
+            it('returns empty array if state has no transitions', function() {
+                var state = {
+                    transitions: []
+                };
+                var ret = StateMachine.getTransitions(state, 'anyEvent');
+                expect(ret).toEqual([]);
+            });
+
+            it('returns empty array if state has no transitions with given trigger name', function() {
+                var state = {
+                    transitions: [{
+                        trigger: 'event1'
+                    }, {
+                        trigger: 'event2'
+                    }, {
+                        trigger: 'event3'
+                    }]
+                };
+
+                var ret = StateMachine.getTransitions(state, 'otherEvent');
+                expect(ret).toEqual([]);
+            });
+
+            it('returns an array of transitions with given trigger name', function() {
+                var trans1 = {
+                    trigger: 'event1'
+                };
+                var trans2 = {
+                    trigger: 'event2'
+                };
+                var trans3 = {
+                    trigger: 'event1'
+                };
+                var state = {
+                    transitions: [trans1, trans2, trans3]
+                };
+
+                var ret = StateMachine.getTransitions(state, 'event1');
+                expect(ret).toEqual([trans1, trans3]);
+            });
+        });
     });
 })(this);
