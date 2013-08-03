@@ -40,23 +40,21 @@
             currentState: null,
             currentStateStack: []
         };
-        var state;
 
         states = arrayFrom(states);
 
         for (var i = 0, len = states.length; i < len; i++) {
-            state = initState(states[i]);
-            fsm.statesMap[state.fqn] = state;
+            initState(fsm.statesMap, states[i]);
         }
 
         return fsm;
     };
 
-    var initState = function initState(config, outerState) {
+    var initState = function initState(statesMap, config, outerState) {
         if (isString(config)) {
             config = {name: config};
-        } else {
-            config = config || {};
+        } else if (!config) {
+            config = {};
         }
 
         if (!isString(config.name)) {
@@ -79,6 +77,8 @@
             state.outerState = outerState;
         }
 
+        statesMap[state.fqn] = state;
+
         config.transitions = arrayFrom(config.transitions);
         for (var i = 0, len = config.transitions.length; i < len; i++) {
             trans = config.transitions[i];
@@ -92,7 +92,8 @@
 
         config.innerStates = arrayFrom(config.innerStates);
         for (var i = 0, len = config.innerStates.length; i < len; i++) {
-            state.innerStates[i] = initState(config.innerStates[i], state);
+            state.innerStates[i] = initState(statesMap,
+                config.innerStates[i], state);
         }
 
         return state;
