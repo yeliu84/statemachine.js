@@ -190,10 +190,11 @@
 
     var doExitAction = function doExitAction(fsm, cur, next) {
         var host = fsm.host;
+        var outer = cur.outerState;
 
         functionApply(cur.exit, host);
 
-        if (cur.outerState && cur.outerState !== next.outerState) {
+        if (outer && outer !== next && outer !== next.outerState) {
             doExitAction(fsm, cur.outerState, next);
         }
     };

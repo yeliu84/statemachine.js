@@ -615,14 +615,90 @@
 
             it('calls the entry function', function() {
                 spyOn(fsm.host, 'func');
+
                 StateMachine.doEntryAction(fsm);
                 expect(fsm.host.func).toHaveBeenCalled();
             });
 
             it('calls the handleStateTrigger with auto trigger', function() {
                 spyOn(fsm.host, 'handleStateTrigger');
+
                 StateMachine.doEntryAction(fsm);
                 expect(fsm.host.handleStateTrigger).toHaveBeenCalledWith('.');
+            });
+        });
+
+        describe('doExitAction', function() {
+            var fsm;
+            var stateA = {
+                exit: 'exitFnA'
+            };
+            var stateB = {
+                exit: 'exitFnB',
+                outerState: stateA
+            };
+            var stateC = {
+                exit: 'exitFnC',
+                outerState: stateB
+            };
+            var stateD = {
+                exit: 'exitFnD',
+                outerState: stateB
+            };
+            var stateE = {
+                exit: 'exitFnE'
+            };
+
+            beforeEach(function() {
+                fsm = {
+                    host: {
+                        exitFnA: function() {},
+                        exitFnB: function() {},
+                        exitFnC: function() {},
+                        exitFnD: function() {},
+                        exitFnE: function() {}
+                    }
+                };
+            });
+
+            it('calls the exit function', function() {
+                spyOn(fsm.host, 'exitFnA');
+
+                StateMachine.doExitAction(fsm, stateA, stateB);
+                expect(fsm.host.exitFnA).toHaveBeenCalled();
+            });
+
+            it('calls the exit functions all the way up if next state is not in the family', function() {
+                spyOn(fsm.host, 'exitFnA');
+                spyOn(fsm.host, 'exitFnB');
+                spyOn(fsm.host, 'exitFnC');
+
+                StateMachine.doExitAction(fsm, stateC, stateE);
+                expect(fsm.host.exitFnC).toHaveBeenCalled();
+                expect(fsm.host.exitFnB).toHaveBeenCalled();
+                expect(fsm.host.exitFnA).toHaveBeenCalled();
+            });
+
+            it('calls the exit functions only up to where next state is if next state is in the same family', function() {
+                spyOn(fsm.host, 'exitFnA');
+                spyOn(fsm.host, 'exitFnB');
+                spyOn(fsm.host, 'exitFnC');
+
+                StateMachine.doExitAction(fsm, stateC, stateA);
+                expect(fsm.host.exitFnC).toHaveBeenCalled();
+                expect(fsm.host.exitFnB).toHaveBeenCalled();
+                expect(fsm.host.exitFnA).not.toHaveBeenCalled();
+            });
+
+            it('calls the state\'s own exit function if next state shares the same outer state', function() {
+                spyOn(fsm.host, 'exitFnA');
+                spyOn(fsm.host, 'exitFnB');
+                spyOn(fsm.host, 'exitFnC');
+
+                StateMachine.doExitAction(fsm, stateC, stateD);
+                expect(fsm.host.exitFnC).toHaveBeenCalled();
+                expect(fsm.host.exitFnB).not.toHaveBeenCalled();
+                expect(fsm.host.exitFnA).not.toHaveBeenCalled();
             });
         });
     });
