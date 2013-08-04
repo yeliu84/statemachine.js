@@ -431,5 +431,96 @@
                 expect(ret).toEqual([trans1, trans3]);
             });
         });
+
+        describe('getState', function() {
+            var fsm;
+            var stateA = {
+                name: 'A',
+                fqn: 'A'
+            };
+            var stateB = {
+                name: 'B',
+                fqn: 'B'
+            };
+            var stateC = {
+                name: 'C',
+                fqn: 'A.C',
+                outerState: stateA
+            };
+            var stateD = {
+                name: 'D',
+                fqn: 'A.C.D',
+                outerState: stateC
+            };
+            var stateE = {
+                name: 'E',
+                fqn: 'A.C.E',
+                outerState: stateC
+            };
+            var stateF = {
+                name: 'F',
+                fqn: 'B.F',
+                outerState: stateB
+            };
+
+            beforeEach(function() {
+                fsm = {
+                    statesMap: {
+                        'A': stateA,
+                        'B': stateB,
+                        'A.C': stateC,
+                        'A.C.D': stateD,
+                        'A.C.E': stateE,
+                        'B.F': stateF
+                    },
+                    currentStateStack: []
+                };
+            });
+
+            it('returns the state object with provided name', function() {
+                var state = StateMachine.getState(fsm, 'A');
+                expect(state).toBe(stateA);
+            });
+
+            it('returns a falsy value if no states has the given name', function() {
+                var state = StateMachine.getState(fsm, 'OtherState');
+                expect(state).toBeFalsy();
+            });
+
+            it('returns the state object with the provided name, which is in the same outer state as the current state', function() {
+                fsm.currentState = stateD;
+
+                var state = StateMachine.getState(fsm, 'E');
+                expect(state).toBe(stateE);
+            });
+
+            it('returns the outer state object with the provided name if an inner state is looking for it', function() {
+                fsm.currentState = stateE;
+
+                var state = StateMachine.getState(fsm, 'C');
+                expect(state).toBe(stateC);
+            });
+
+            it('returns the ascendant state object with the provided name if a ascendant state is looking for it', function() {
+                fsm.currentState = stateD;
+
+                var state = StateMachine.getState(fsm, 'A');
+                expect(state).toBe(stateA);
+            });
+
+            it('returns the other root state object with the provided name if an inner state is looking for it', function() {
+                fsm.currentState = stateE;
+
+                var state = StateMachine.getState(fsm, 'B');
+                expect(state).toBe(stateB);
+            });
+
+            it('returns a falsy value if a state is looking for another state from different family', function() {
+                fsm.currentState = stateD;
+
+                var state = StateMachine.getState(fsm, 'F');
+                expect(state).toBeFalsy();
+            });
+        });
     });
 })(this);
