@@ -522,5 +522,80 @@
                 expect(state).toBeFalsy();
             });
         });
+
+        describe('pushCurrentState', function() {
+            var fsm;
+            var stateA = {
+                name: 'A'
+            };
+            var stateB = {
+                name: 'B'
+            };
+
+            beforeEach(function() {
+                fsm = {
+                    currentStateStack: [],
+                    currentState: stateA
+                };
+            });
+
+            it('pushes current state onto stack', function() {
+                StateMachine.pushCurrentState(fsm);
+                expect(fsm.currentStateStack.length).toBe(1);
+                expect(fsm.currentStateStack[0]).toBe(stateA);
+            });
+
+            it('changes current state to provided state', function() {
+                StateMachine.pushCurrentState(fsm, stateB);
+                expect(fsm.currentState).toBe(stateB);
+            });
+        });
+
+        describe('popCurrentState', function() {
+            var fsm;
+            var stateA = {
+                name: 'A'
+            };
+            var stateB = {
+                name: 'B'
+            };
+
+            beforeEach(function() {
+                fsm = {
+                    currentStateStack: [stateA],
+                    currentState: stateB
+                };
+            });
+
+            it('pops the current state stack', function() {
+                StateMachine.popCurrentState(fsm);
+                expect(fsm.currentStateStack.length).toBe(0);
+            });
+
+            it('changes current state to the removed state', function() {
+                StateMachine.popCurrentState(fsm);
+                expect(fsm.currentState).toBe(stateA);
+            });
+        });
+
+        describe('changeState', function() {
+            var fsm;
+            var stateA = {
+                name: 'A'
+            };
+            var stateB = {
+                name: 'B'
+            };
+
+            beforeEach(function() {
+                fsm = {};
+            });
+
+            it('changes current and previous states', function() {
+                StateMachine.changeState(fsm, stateA, stateB);
+                expect(fsm.currentState).toBe(stateB);
+                expect(fsm.previousState).toBe(stateA);
+            });
+        });
     });
 })(this);
