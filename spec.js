@@ -597,5 +597,33 @@
                 expect(fsm.previousState).toBe(stateA);
             });
         });
+
+        describe('doEntryAction', function() {
+            var fsm;
+
+            beforeEach(function() {
+                fsm = {
+                    host: {
+                        func: function() {},
+                        handleStateTrigger: function() {}
+                    },
+                    currentState: {
+                        entry: 'func'
+                    }
+                };
+            });
+
+            it('calls the entry function', function() {
+                spyOn(fsm.host, 'func');
+                StateMachine.doEntryAction(fsm);
+                expect(fsm.host.func).toHaveBeenCalled();
+            });
+
+            it('calls the handleStateTrigger with auto trigger', function() {
+                spyOn(fsm.host, 'handleStateTrigger');
+                StateMachine.doEntryAction(fsm);
+                expect(fsm.host.handleStateTrigger).toHaveBeenCalledWith('.');
+            });
+        });
     });
 })(this);
