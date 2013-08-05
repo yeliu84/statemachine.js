@@ -701,5 +701,11 @@
                 expect(fsm.host.exitFnA).not.toHaveBeenCalled();
             });
         });
+
+        describe('init', function() {
+        });
+
+        describe('handleStateTrigger', function() {
+        });
     });
 })(this);
