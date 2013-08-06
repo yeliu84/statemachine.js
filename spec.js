@@ -7,9 +7,11 @@
         });
 
         it('contains all extra functions', function() {
+            expect(StateMachine.isObject).toBeDefined();
+            expect(StateMachine.isFunction).toBeDefined();
             expect(StateMachine.isString).toBeDefined();
             expect(StateMachine.isNumber).toBeDefined();
-            expect(StateMachine.isFunction).toBeDefined();
+            expect(StateMachine.isBoolean).toBeDefined();
             expect(StateMachine.isArray).toBeDefined();
             expect(StateMachine.isArrayLike).toBeDefined();
             expect(StateMachine.arrayFrom).toBeDefined();
@@ -31,6 +33,30 @@
 
         /* ----- Helpers ----- */
 
+        describe('isObject', function() {
+            it('returns true is value is object', function() {
+                expect(StateMachine.isObject({})).toBe(true);
+            });
+
+            it('returns false is value is not object', function() {
+                expect(StateMachine.isObject('123')).toBe(false);
+            });
+
+            it('returns false is value is null', function() {
+                expect(StateMachine.isObject(null)).toBe(false);
+            });
+        });
+
+        describe('isFunction', function() {
+            it('returns true is value is function', function() {
+                expect(StateMachine.isFunction(function() {})).toBe(true);
+            });
+
+            it('returns false is value is not function', function() {
+                expect(StateMachine.isFunction('123')).toBe(false);
+            });
+        });
+
         describe('isString', function() {
             it('returns true is value is string', function() {
                 expect(StateMachine.isString('123')).toBe(true);
@@ -51,13 +77,13 @@
             });
         });
 
-        describe('isFunction', function() {
-            it('returns true is value is function', function() {
-                expect(StateMachine.isFunction(function() {})).toBe(true);
+        describe('isBoolean', function() {
+            it('returns true is value is boolean', function() {
+                expect(StateMachine.isBoolean(false)).toBe(true);
             });
 
-            it('returns false is value is not function', function() {
-                expect(StateMachine.isFunction('123')).toBe(false);
+            it('returns false is value is not boolean', function() {
+                expect(StateMachine.isBoolean('false')).toBe(false);
             });
         });
 
@@ -703,9 +729,177 @@
         });
 
         describe('init', function() {
+            it('attaches fsm object and various functions to host object', function() {
+                var host = {};
+                StateMachine.init(host, [], true, true);
+                expect(host.fsm).toBeDefined();
+                expect(host.handleStateTrigger).toBeDefined();
+                expect(host.getCurrentStateName).toBeDefined();
+                expect(host.getPreviousStateName).toBeDefined();
+            });
+
+            it('assigns true as default values to callEntryIfTransitBack and callExitIfTransitBack', function() {
+                var host = {};
+                StateMachine.init(host, []);
+                expect(host.fsm.callEntryIfTransitBack).toBe(true);
+                expect(host.fsm.callExitIfTransitBack).toBe(true);
+            });
+
+            it('moves the state machine to the first state', function() {
+                var host = {};
+                StateMachine.init(host, [{
+                    name: 'A'
+                }]);
+                expect(host.getCurrentStateName()).toEqual('A');
+            });
         });
 
         describe('handleStateTrigger', function() {
+            var host;
+            var states = [{
+                name: 'A',
+                entry: 'stateAEntry',
+                exit: 'stateAExit',
+                transitions: [{
+                    trigger: 'stateAToBEvent',
+                    dest: 'B',
+                    action: 'stateAToBAction',
+                    guard: 'stateAToBGuard',
+                }, {
+                    trigger: 'stateAToNotExistEvent',
+                    dest: 'NotExist'
+                }, {
+                    trigger: 'stateADupEvent',
+                    dest: 'C',
+                    guard: function() { return false; }
+                }, {
+                    trigger: 'stateADupEvent',
+                    dest: 'D',
+                    guard: function() { return true; }
+                }, {
+                    trigger: 'stateAToEEvent',
+                    dest: 'E',
+                }]
+            }, {
+                name: 'B',
+                entry: 'stateBEntry',
+                exit: 'stateBExit'
+            }, {
+                name: 'C'
+            }, {
+                name: 'D'
+            }, {
+                name: 'E',
+                entry: 'stateEEntry',
+                exit: 'stateEExit',
+                innerStates: [{
+                    name: 'F',
+                    entry: 'stateFEntry',
+                    exit: 'stateFExit',
+                    transitions: [{
+                        trigger: 'stateFToBEvent',
+                        dest: 'B'
+                    }]
+                }, {
+                    name: 'G',
+                    entry: 'stateGEntry',
+                    exit: 'stateGExit'
+                }]
+            }];
+
+            beforeEach(function() {
+                host = {
+                    stateAEntry: function() {},
+                    stateAExit: function() {},
+                    stateAToBAction: function() {},
+                    stateAToBGuard: function() {},
+                    stateBEntry: function() {},
+                    stateBExit: function() {},
+                    stateEEntry: function() {},
+                    stateEExit: function() {},
+                    stateFEntry: function() {},
+                    stateFExit: function() {},
+                    stateGEntry: function() {},
+                    stateGExit: function() {},
+                };
+
+                StateMachine.init(host, states);
+            });
+
+            it('changes state if a transition can be found with the given trigger', function() {
+                spyOn(host, 'stateAExit');
+                spyOn(host, 'stateBEntry');
+                expect(host.getCurrentStateName()).toEqual('A');
+                host.handleStateTrigger('stateAToBEvent');
+                expect(host.getCurrentStateName()).toEqual('B');
+                expect(host.getPreviousStateName()).toEqual('A');
+                expect(host.stateAExit).toHaveBeenCalled();
+                expect(host.stateBEntry).toHaveBeenCalled();
+            });
+
+            it('does not change state if a transition can not be found with the given trigger', function() {
+                spyOn(host, 'stateAExit');
+                expect(host.getCurrentStateName()).toEqual('A');
+                host.handleStateTrigger('eventNotExist');
+                expect(host.getCurrentStateName()).toEqual('A');
+                expect(host.stateAExit).not.toHaveBeenCalled();
+            });
+
+            it('calls action function if a transition can be found with the given trigger', function() {
+                spyOn(host, 'stateAToBAction');
+                host.handleStateTrigger('stateAToBEvent', [123, '123']);
+                expect(host.stateAToBAction).toHaveBeenCalledWith(123, '123');
+            });
+
+            it('calls guard function if a transition can be found with the given trigger', function() {
+                spyOn(host, 'stateAToBGuard');
+                host.handleStateTrigger('stateAToBEvent', [], [123, '123']);
+                expect(host.stateAToBGuard).toHaveBeenCalledWith(123, '123');
+            });
+
+            it('does not change state if guard function returns false', function() {
+                spyOn(host, 'stateAExit');
+                spyOn(host, 'stateAToBGuard').andReturn(false);
+                host.handleStateTrigger('stateAToBEvent', [], [123, '123']);
+                expect(host.stateAToBGuard).toHaveBeenCalledWith(123, '123');
+                expect(host.getCurrentStateName()).toBe('A');
+                expect(host.stateAExit).not.toHaveBeenCalled();
+            });
+
+            it('does not change state if destination does not exist', function() {
+                spyOn(host, 'stateAExit');
+                host.handleStateTrigger('stateAToNotExistEvent');
+                expect(host.getCurrentStateName()).toBe('A');
+                expect(host.stateAExit).not.toHaveBeenCalled();
+            });
+
+            it('chooses the correct destination based on the return value of guard function', function() {
+                host.handleStateTrigger('stateADupEvent');
+                expect(host.getCurrentStateName()).toBe('D');
+            });
+
+            it('changes state to first inner state automatically', function() {
+                spyOn(host, 'stateAExit');
+                spyOn(host, 'stateEEntry');
+                spyOn(host, 'stateFEntry');
+                host.handleStateTrigger('stateAToEEvent');
+                expect(host.getCurrentStateName()).toBe('F');
+                expect(host.stateAExit).toHaveBeenCalled();
+                expect(host.stateEEntry).toHaveBeenCalled();
+                expect(host.stateFEntry).toHaveBeenCalled();
+            });
+
+            it('changes state from inner state to outside', function() {
+                spyOn(host, 'stateEExit');
+                spyOn(host, 'stateFExit');
+                spyOn(host, 'stateBEntry');
+                host.handleStateTrigger('stateAToEEvent');
+                host.handleStateTrigger('stateFToBEvent');
+                expect(host.getCurrentStateName()).toBe('B');
+                expect(host.stateFExit).toHaveBeenCalled();
+                expect(host.stateEExit).toHaveBeenCalled();
+                expect(host.stateBEntry).toHaveBeenCalled();
+            });
         });
     });
 })(this);

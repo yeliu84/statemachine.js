@@ -22,13 +22,33 @@
             callEntryIfTransitBack, callExitIfTransitBack) {
         var fsm;
         host = host || {};
+        states = arrayFrom(states);
 
-        fsm = initFsm(host, arrayFrom(states));
-        fsm.callEntryIfTransitBack = callEntryIfTransitBack;
-        fsm.callExitIfTransitBack = callExitIfTransitBack;
+        fsm = initFsm(host, states);
+        fsm.callEntryIfTransitBack = isBoolean(callEntryIfTransitBack) ?
+            callEntryIfTransitBack : true;
+        fsm.callExitIfTransitBack = isBoolean(callExitIfTransitBack) ?
+            callExitIfTransitBack : true;
 
-        host.handleStateTrigger = handleStateTriggerFactory(fsm);
         host.fsm = fsm;
+        host.handleStateTrigger = handleStateTriggerFactory(fsm);
+        host.getCurrentStateName = function() {
+            if (fsm.currentState) {
+                return fsm.currentState.name;
+            }
+            return null;
+        };
+        host.getPreviousStateName = function() {
+            if (fsm.previousState) {
+                return fsm.previousState.name;
+            }
+            return null;
+        };
+
+        if (states.length > 0) {
+            fsm.currentState = getState(fsm, states[0].name);
+            doEntryAction(fsm);
+        }
 
         return host;
     };
@@ -114,7 +134,8 @@
                     next = getState(fsm, trans.dest);
                     if (next) {
                         functionApply(trans.action, host, actionArgs);
-                        if (next !== cur || fsm.callExitIfTransitBack) {
+                        if ((next !== cur && next.outerState !== cur)
+                                || (next === cur && fsm.callExitIfTransitBack)) {
                             doExitAction(fsm, cur, next);
                         }
                         (function doChangeState(cur, next) {
@@ -183,9 +204,12 @@
 
     var doEntryAction = function(fsm) {
         var host = fsm.host;
+        var cur = fsm.currentState;
 
-        functionApply(fsm.currentState.entry, host);
-        host.handleStateTrigger('.');
+        if (cur) {
+            functionApply(cur.entry, host);
+            host.handleStateTrigger('.');
+        }
     };
 
     var doExitAction = function doExitAction(fsm, cur, next) {
@@ -207,6 +231,10 @@
             && toString.call(value) === '[object Object]');
     };
 
+    var isFunction = function(value) {
+        return toString.call(value) === '[object Function]';
+    };
+
     var isString = function(value) {
         return toString.call(value) === '[object String]';
     };
@@ -215,8 +243,8 @@
         return toString.call(value) === '[object Number]';
     };
 
-    var isFunction = function(value) {
-        return toString.call(value) === '[object Function]';
+    var isBoolean = function(value) {
+        return toString.call(value) === '[object Boolean]';
     };
 
     var isArray = Array.isArray || function(value) {
@@ -261,9 +289,11 @@
     /* ----- Export Extra Functions ----- */
 
     if (global.STATEMACHINE_EXPORT_EXTRA) {
+        StateMachine.isObject = isObject;
+        StateMachine.isFunction = isFunction;
         StateMachine.isString = isString;
         StateMachine.isNumber = isNumber;
-        StateMachine.isFunction = isFunction;
+        StateMachine.isBoolean = isBoolean;
         StateMachine.isArray = isArray;
         StateMachine.isArrayLike = isArrayLike;
         StateMachine.arrayFrom = arrayFrom;
