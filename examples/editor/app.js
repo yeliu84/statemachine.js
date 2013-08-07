@@ -27,7 +27,7 @@
             name: 'DIRTY',
             transitions: {
                 trigger: 'contentchanged',
-                guard: 'isOriginalContent'
+                guard: 'isOriginalContent',
                 dest: 'CLEAN'
             }
         }]
