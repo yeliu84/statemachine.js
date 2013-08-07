@@ -5,10 +5,28 @@
     var viewer;
     var message;
 
-    var editorApp = StateMachine.init({}, [{
+    var rendered = false;
+    var hiddenCls = 'hidden';
+
+    var editorApp = {
+        showViewer: function() {
+            if (rendered) {
+                viewer.parentElement.classList.remove(hiddenCls);
+                editor.parentElement.classList.add(hiddenCls);
+            }
+        },
+
+        showEditor: function() {
+            if (rendered) {
+                editor.parentElement.classList.remove(hiddenCls);
+                viewer.parentElement.classList.add(hiddenCls);
+            }
+        }
+    };
+
+    var states = [{
         name: 'VIEWING',
         entry: 'showViewer',
-        exit: 'hideViewer',
         transitions: [{
             trigger: 'editclicked',
             dest: 'EDITING'
@@ -16,7 +34,6 @@
     }, {
         name: 'EDITING',
         entry: 'showEditor',
-        exit: 'hideEditor',
         innerStates: [{
             name: 'CLEAN',
             transitions: {
@@ -31,7 +48,32 @@
                 dest: 'CLEAN'
             }
         }]
-    }]);
+    }];
+
+    window.onload = function() {
+        rendered = true;
+
+        editor = document.getElementById('editor');
+        viewer = document.getElementById('viewer');
+        message = document.getElementById('message');
+
+        document.getElementById('edit-link').addEventListener('click', function(e) {
+            editorApp.handleStateTrigger('editclicked');
+            e.preventDefault();
+        }, false);
+        document.getElementById('save-link').addEventListener('click', function(e) {
+            editorApp.handleStateTrigger('saveclicked');
+            e.preventDefault();
+        }, false);
+        document.getElementById('cancel-link').addEventListener('click', function(e) {
+            editorApp.handleStateTrigger('cancelclicked');
+            e.preventDefault();
+        }, false);
+
+        StateMachine.init(editorApp, states);
+
+        setMessage('App started: ' + editorApp.getCurrentStateName());
+    };
 
     function getEditorContent() {
         if (editor) {
@@ -72,40 +114,4 @@
 
         return elem;
     }
-
-    function hasClass(elem, cls) {
-        var classes = elem.className.split(' ');
-
-        for (var i = 0, len = classes.length; i < len; i++) {
-            if (classes[i] === cls) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    function addClass(elem, cls) {
-        if (!hasClass(elem, cls)) {
-            elem.className += ' ' + cls;
-        }
-
-        return elem;
-    }
-
-    function removeClass(elem, cls) {
-        var classes = [];
-
-        elem.className.split(' ').forEach(function(c) {
-            if (c !== cls) {
-                classes.push(c);
-            }
-        });
-        elem.className = classes.join(' ');
-
-        return elem;
-    }
-
-    window.onload = function() {
-    };
 })();
