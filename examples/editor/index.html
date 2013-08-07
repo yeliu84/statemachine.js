@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+    <head>
+        <title>StateMachineJS Examples: Stateful Editor</title>
+        <link rel="stylesheet" href="style.css">
+        <script src="../../statemachine.js"></script>
+        <script src="app.js"></script>
+    </head>
+    <body>
+        <h1>StateMachineJS Examples: Stateful Editor</h1>
+        <div id="main">
+            <div class="view">
+                <p id="viewer"></p>
+                <div class="actions">
+                    <a id="edit-link" href="">Edit</a>
+                </div>
+            </div>
+            <div class="view">
+                <textarea id="editor" class="hidden"></textarea>
+                <div class="actions">
+                    <a id="save-link" href="">Save</a>
+                    <a id="cancel-link" href="">Cancel</a>
+                </div>
+            </div>
+        </div>
+        <div id="info">
+            <p id="message"></p>
+        </div>
+    </body>
+</html>
