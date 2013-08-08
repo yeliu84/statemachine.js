@@ -5,43 +5,65 @@ Implementation of State Machine Pattern in JavaScript.
 
 ## How to use StateMachineJS?
 
-```javascript
-var app = {                     // host object for state machine
-    states: [{                  // states definition
-        name: 'STATE_A'         // state name
-        entry: 'stateAEntry'    // state entry function
-        exit: 'stateAExit'      // state exit function
-        transitions: [{         // transitions definition
-            trigger: 'event1'   // transition trigger
-            dest: 'STATE_B'     // transition destination
-            action: 'action1'   // transition action function
-            guard: 'guard1'     // transition guard function
-        }]
-    }, {
-        name: 'STATE_B'         // minimal state definition
-    }],
+1. Define states in host object
 
-    stateAEntry: function() {
-        // this function will be called when entering STATE_A
-    },
+    ```javascript
+    var app = {                     // host object for state machine
+        states: [{                  // states definition
+            name: 'STATE_A'         // state name
+            entry: 'stateAEntry'    // state entry function
+            exit: 'stateAExit'      // state exit function
+            transitions: [{         // transitions definition
+                trigger: 'event1'   // transition trigger
+                dest: 'STATE_B'     // transition destination
+                action: 'action1'   // transition action function
+                guard: 'guard1'     // transition guard function
+            }]
+        }, {
+            name: 'STATE_B'         // minimal state definition
+        }],
 
-    stateAExit: function() {
-        // this function will be called when leaving STATE_A
-    },
+        // host object is used as the context (`this`) of all state functions
 
-    action1: function() {
-        // this function will be called when "event1" transition is taking place
-    },
+        stateAEntry: function() {
+            // this function will be called when entering STATE_A
+        },
 
-    guard1: function() {
-        // this function returns `false` to prevent "event1" transition from
-        // happening
-    }
-};
+        stateAExit: function() {
+            // this function will be called when leaving STATE_A
+        },
 
-StateMachine.init(app);             // initialize host object
+        action1: function() {
+            // this function will be called when "event1" transition is taking place
+        },
 
-app.getCurrentStateName();          // => 'STATE_A', app is now in the first state
-app.handleStateTrigger('event1')    // trigger state transition
-app.getCurrentStateName();          // => 'STATE_B', app is now in the STATE_B state
-```
+        guard1: function() {
+            // this function returns `false` to prevent "event1" transition from
+            // happening
+        }
+    };
+    ```
+
+2. Initialize host object
+
+    ```javascript
+    StateMachine.init(app);
+    ```
+
+3. Check current state
+
+    ```javascript
+    app.getCurrentStateName();          // => 'STATE_A', app is now in the first state
+    ```
+
+4. Trigger state transition
+
+    ```javascript
+    app.handleStateTrigger('event1')
+    ```
+
+5. Check current state again
+
+    ```javascript
+    app.getCurrentStateName();          // => 'STATE_B', app is now in the STATE_B state
+    ```
