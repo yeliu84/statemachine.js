@@ -4,7 +4,7 @@
     var prevStateMachine = global.StateMachine;
 
     var StateMachine = global.StateMachine = {
-        __version__: '0.0.1',
+        __version__: '0.1.0',
         __license__: 'MIT',
         __author__: 'Ye Liu',
         __contact__: 'yeliu@instast.com',
@@ -21,8 +21,21 @@
     StateMachine.init = function(host, states,
             callEntryIfTransitBack, callExitIfTransitBack) {
         var fsm;
-        host = host || {};
-        states = arrayFrom(states);
+
+        switch (arguments.length) {
+        case 0:
+            host = {};
+            states = [];
+            break;
+        case 1:
+            host = host || {};
+            /* fall through */
+        case 2:
+            states = arrayFrom(states || host.states);
+            break;
+        default:
+            break;
+        }
 
         fsm = initFsm(host, states);
         fsm.callEntryIfTransitBack = isBoolean(callEntryIfTransitBack) ?

@@ -10,6 +10,58 @@
     var hiddenCls = 'hidden';
 
     var editorApp = {
+        /* ----- States Definition ----- */
+        states: [{
+            name: 'VIEWING',
+            entry: 'viewingEntry',
+            transitions: [{
+                trigger: 'editclicked',
+                dest: 'EDITING'
+            }]
+        }, {
+            name: 'EDITING',
+            entry: 'editingEntry',
+            innerStates: [{
+                name: 'CLEAN',
+                entry: 'cleanEntry',
+                transitions: [{
+                    trigger: 'contentchanged',
+                    dest: 'DIRTY'
+                }, {
+                    trigger: 'saveclicked',
+                    dest: 'VIEWING'
+                }, {
+                    trigger: 'cancelclicked',
+                    dest: 'VIEWING'
+                }]
+            }, {
+                name: 'DIRTY',
+                entry: function() { // functions can be used here
+                    setState('EDITING.' + this.getCurrentStateName());
+                },
+                transitions: [{
+                    trigger: 'contentchanged',
+                    guard: function() {
+                        return getEditorContent() === this.originalContent;
+                    },
+                    dest: 'CLEAN'
+                }, {
+                    trigger: 'saveclicked',
+                    dest: 'VIEWING',
+                    action: function() {
+                        setViewerContent(getEditorContent());
+                    }
+                }, {
+                    trigger: 'cancelclicked',
+                    dest: 'VIEWING',
+                    action: function() {
+                        setViewerContent(this.originalContent);
+                    }
+                }]
+            }]
+        }],
+
+        /* ----- Object Members ----- */
         originalContent: '',
 
         viewingEntry: function() {
@@ -31,56 +83,6 @@
             setState('EDITING.' + this.getCurrentStateName());
         }
     };
-
-    var states = [{
-        name: 'VIEWING',
-        entry: 'viewingEntry',
-        transitions: [{
-            trigger: 'editclicked',
-            dest: 'EDITING'
-        }]
-    }, {
-        name: 'EDITING',
-        entry: 'editingEntry',
-        innerStates: [{
-            name: 'CLEAN',
-            entry: 'cleanEntry',
-            transitions: [{
-                trigger: 'contentchanged',
-                dest: 'DIRTY'
-            }, {
-                trigger: 'saveclicked',
-                dest: 'VIEWING'
-            }, {
-                trigger: 'cancelclicked',
-                dest: 'VIEWING'
-            }]
-        }, {
-            name: 'DIRTY',
-            entry: function() { // functions can be used here
-                setState('EDITING.' + this.getCurrentStateName());
-            },
-            transitions: [{
-                trigger: 'contentchanged',
-                guard: function() {
-                    return getEditorContent() === this.originalContent;
-                },
-                dest: 'CLEAN'
-            }, {
-                trigger: 'saveclicked',
-                dest: 'VIEWING',
-                action: function() {
-                    setViewerContent(getEditorContent());
-                }
-            }, {
-                trigger: 'cancelclicked',
-                dest: 'VIEWING',
-                action: function() {
-                    setViewerContent(this.originalContent);
-                }
-            }]
-        }]
-    }];
 
     window.onload = function() {
         rendered = true;
@@ -107,7 +109,7 @@
             e.preventDefault();
         }, false);
 
-        StateMachine.init(editorApp, states);
+        StateMachine.init(editorApp);
     };
 
     function showViewer() {

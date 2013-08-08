@@ -752,6 +752,16 @@
                 }]);
                 expect(host.getCurrentStateName()).toEqual('A');
             });
+
+            it('uses states definition from host object', function() {
+                var host = {
+                    states: [{
+                        name: 'A'
+                    }]
+                };
+                StateMachine.init(host);
+                expect(host.getCurrentStateName()).toEqual('A');
+            });
         });
 
         describe('handleStateTrigger', function() {
