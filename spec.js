@@ -901,5 +901,77 @@
                 expect(host.stateBEntry).toHaveBeenCalled();
             });
         });
+
+        describe('callEntryIfTransitBack', function() {
+            var host;
+            var states = [{
+                name: 'A',
+                entry: 'stateAEntry',
+                transitions: {
+                    trigger: 'toSelf',
+                    dest: 'A'
+                } 
+            }];
+
+            beforeEach(function() {
+                host = {
+                    stateAEntry: function() {}
+                };
+            });
+
+            it('is set to true, entry function will be called if transiting back', function() {
+                StateMachine.init(host, states, true);
+
+                expect(host.getCurrentStateName()).toEqual('A');
+                spyOn(host, 'stateAEntry');
+                host.handleStateTrigger('toSelf');
+                expect(host.stateAEntry).toHaveBeenCalled();
+            });
+
+            it('is set to false, entry function will not be called if transiting back', function() {
+                StateMachine.init(host, states, false);
+
+                expect(host.getCurrentStateName()).toEqual('A');
+                spyOn(host, 'stateAEntry');
+                host.handleStateTrigger('toSelf');
+                expect(host.stateAEntry).not.toHaveBeenCalled();
+            });
+        });
+
+        describe('callExitIfTransitBack', function() {
+            var host;
+            var states = [{
+                name: 'A',
+                exit: 'stateAExit',
+                transitions: {
+                    trigger: 'toSelf',
+                    dest: 'A'
+                } 
+            }];
+
+            beforeEach(function() {
+                host = {
+                    stateAExit: function() {}
+                };
+            });
+
+            it('is set to true, exit function will be called if transiting back', function() {
+                StateMachine.init(host, states, true, true);
+
+                expect(host.getCurrentStateName()).toEqual('A');
+                spyOn(host, 'stateAExit');
+                host.handleStateTrigger('toSelf');
+                expect(host.stateAExit).toHaveBeenCalled();
+            });
+
+            it('is set to false, entry function will not be called if transiting back', function() {
+                StateMachine.init(host, states, true, false);
+
+                expect(host.getCurrentStateName()).toEqual('A');
+                spyOn(host, 'stateAExit');
+                host.handleStateTrigger('toSelf');
+                expect(host.stateAExit).not.toHaveBeenCalled();
+            });
+        });
     });
 })(this);
