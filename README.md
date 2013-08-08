@@ -5,7 +5,7 @@ Implementation of State Machine Pattern in JavaScript.
 
 ## How to use StateMachineJS?
 
-```javascrip
+```javascript
 var app = {                     // host object for state machine
     states: [{                  // states definition
         name: 'STATE_A'         // state name
