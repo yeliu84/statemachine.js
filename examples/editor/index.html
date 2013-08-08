@@ -10,13 +10,13 @@
         <h1>StateMachineJS Examples: Stateful Editor</h1>
         <div id="main">
             <div class="view">
-                <p id="viewer"></p>
+                <p id="viewer">You've gotta dance like there's nobody watching, love like you'll never be hurt, sing like there's nobody listening, and live like it's heaven on earth." - William W. Purkey</p>
                 <div class="actions">
                     <a id="edit-link" href="">Edit</a>
                 </div>
             </div>
             <div class="view hidden">
-                <textarea id="editor"></textarea>
+                <p id="editor" contenteditable></p>
                 <div class="actions">
                     <a id="save-link" href="">Save</a>
                     <a id="cancel-link" href="">Cancel</a>
@@ -24,8 +24,8 @@
             </div>
         </div>
         <div id="info">
-            <label>Message:</label>
-            <p id="message"></p>
+            <p><label>Message:</label><span id="message"></span></p>
+            <p><label>State:</label><span id="state" class="bold"></span></p>
         </div>
     </body>
 </html>

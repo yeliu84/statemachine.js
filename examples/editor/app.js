@@ -4,49 +4,81 @@
     var editor;
     var viewer;
     var message;
+    var state;
 
     var rendered = false;
     var hiddenCls = 'hidden';
 
     var editorApp = {
-        showViewer: function() {
-            if (rendered) {
-                viewer.parentElement.classList.remove(hiddenCls);
-                editor.parentElement.classList.add(hiddenCls);
-            }
+        originalContent: '',
+
+        viewingEntry: function() {
+            showViewer();
+            setState(this.getCurrentStateName()); // `this` is the host object
+            setMessage('You are in view mode. Click "Edit" to edit the message.');
         },
 
-        showEditor: function() {
-            if (rendered) {
-                editor.parentElement.classList.remove(hiddenCls);
-                viewer.parentElement.classList.add(hiddenCls);
-            }
+        editingEntry: function() {
+            showEditor();
+            editor.focus();
+            setState(this.getCurrentStateName());
+            setMessage('You are in edit mode. Click "Save" to save, "Cancel" to discard changes.');
+        },
+
+        cleanEntry: function() {
+            this.originalContent = getViewerContent();
+            setEditorContent(this.originalContent);
+            setState('EDITING.' + this.getCurrentStateName());
         }
     };
 
     var states = [{
         name: 'VIEWING',
-        entry: 'showViewer',
+        entry: 'viewingEntry',
         transitions: [{
             trigger: 'editclicked',
             dest: 'EDITING'
         }]
     }, {
         name: 'EDITING',
-        entry: 'showEditor',
+        entry: 'editingEntry',
         innerStates: [{
             name: 'CLEAN',
-            transitions: {
+            entry: 'cleanEntry',
+            transitions: [{
                 trigger: 'contentchanged',
                 dest: 'DIRTY'
-            }
+            }, {
+                trigger: 'saveclicked',
+                dest: 'VIEWING'
+            }, {
+                trigger: 'cancelclicked',
+                dest: 'VIEWING'
+            }]
         }, {
             name: 'DIRTY',
-            transitions: {
+            entry: function() { // functions can be used here
+                setState('EDITING.' + this.getCurrentStateName());
+            },
+            transitions: [{
                 trigger: 'contentchanged',
-                guard: 'isOriginalContent',
+                guard: function() {
+                    return getEditorContent() === this.originalContent;
+                },
                 dest: 'CLEAN'
-            }
+            }, {
+                trigger: 'saveclicked',
+                dest: 'VIEWING',
+                action: function() {
+                    setViewerContent(getEditorContent());
+                }
+            }, {
+                trigger: 'cancelclicked',
+                dest: 'VIEWING',
+                action: function() {
+                    setViewerContent(this.originalContent);
+                }
+            }]
         }]
     }];
 
@@ -56,6 +88,11 @@
         editor = document.getElementById('editor');
         viewer = document.getElementById('viewer');
         message = document.getElementById('message');
+        state = document.getElementById('state');
+
+        editor.addEventListener('keyup', function(e) {
+            editorApp.handleStateTrigger('contentchanged');
+        });
 
         document.getElementById('edit-link').addEventListener('click', function(e) {
             editorApp.handleStateTrigger('editclicked');
@@ -71,22 +108,28 @@
         }, false);
 
         StateMachine.init(editorApp, states);
-
-        setMessage('App started: ' + editorApp.getCurrentStateName());
     };
 
-    function getEditorContent() {
-        if (editor) {
-            return editor.value;
+    function showViewer() {
+        if (rendered) {
+            viewer.parentElement.classList.remove(hiddenCls);
+            editor.parentElement.classList.add(hiddenCls);
         }
     }
 
-    function setEditorContent(text) {
-        if (editor) {
-            editor.value = text;
+    function showEditor() {
+        if (rendered) {
+            editor.parentElement.classList.remove(hiddenCls);
+            viewer.parentElement.classList.add(hiddenCls);
         }
+    }
 
-        return editor;
+    function getEditorContent() {
+        return getHtml(editor);
+    }
+
+    function setEditorContent(text) {
+        return setHtml(editor, text);
     }
 
     function getViewerContent() {
@@ -99,6 +142,10 @@
 
     function setMessage(msg) {
         return setHtml(message, msg);
+    }
+
+    function setState(name) {
+        return setHtml(state, name);
     }
 
     function getHtml(elem) {

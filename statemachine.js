@@ -140,7 +140,7 @@
                         }
                         (function doChangeState(cur, next) {
                             changeState(fsm, cur, next);
-                            if (next !== cur || fsm.callEntryIfTransitBack()) {
+                            if (next !== cur || fsm.callEntryIfTransitBack) {
                                 doEntryAction(fsm);
                             }
                             if (next.innerStates.length > 0) {
