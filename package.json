@@ -1,0 +1,33 @@
+{
+  "name": "statemachine",
+  "version": "0.1.0",
+  "description": "Implementation of State Machine Pattern in JavaScript.",
+  "main": "statemachine.js",
+  "directories": {
+    "deom": "examples"
+  },
+  "dependencies": {
+    "karma": "~0.8.8"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "make test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/jaux/statemachine.js.git"
+  },
+  "keywords": [
+    "statemachine",
+    "state-machine",
+    "state-pattern",
+    "fsm",
+    "stateful",
+    "design-pattern"
+  ],
+  "author": "Ye Liu",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jaux/statemachine.js/issues"
+  }
+}
