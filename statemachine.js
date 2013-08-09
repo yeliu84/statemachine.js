@@ -101,7 +101,7 @@
             exit: config.exit,
             transitions: [],
             outerState: null,
-            innerStates: [],
+            innerStates: []
         };
         var trans;
 
@@ -124,7 +124,7 @@
         }
 
         config.innerStates = arrayFrom(config.innerStates);
-        for (var i = 0, len = config.innerStates.length; i < len; i++) {
+        for (i = 0, len = config.innerStates.length; i < len; i++) {
             state.innerStates[i] = initState(statesMap,
                 config.innerStates[i], state);
         }
@@ -147,8 +147,8 @@
                     next = getState(fsm, trans.dest);
                     if (next) {
                         functionApply(trans.action, host, actionArgs);
-                        if ((next !== cur && next.outerState !== cur)
-                                || (next === cur && fsm.callExitIfTransitBack)) {
+                        if ((next !== cur && next.outerState !== cur) ||
+                                (next === cur && fsm.callExitIfTransitBack)) {
                             doExitAction(fsm, cur, next);
                         }
                         (function doChangeState(cur, next) {
@@ -239,9 +239,9 @@
     /* ----- Helpers ----- */
 
     var isObject = function(value) {
-        return (value !== undefined
-            && value !== null
-            && toString.call(value) === '[object Object]');
+        return value !== undefined &&
+            value !== null &&
+            toString.call(value) === '[object Object]';
     };
 
     var isFunction = function(value) {
@@ -265,10 +265,10 @@
     };
 
     var isArrayLike = function(value) {
-        return (isNumber(value.length)
-            && !isObject(value)
-            && !isString(value)
-            && !isFunction(value));
+        return isNumber(value.length) &&
+            !isObject(value) &&
+            !isString(value) &&
+            !isFunction(value);
     };
 
     var arrayFrom = function(value) {
