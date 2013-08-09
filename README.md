@@ -3,7 +3,7 @@ StateMachineJS
 
 Implementation of State Machine Pattern in JavaScript.
 
-## How to use StateMachineJS?
+### Get Started
 
 1. Define states in host object
 
@@ -67,3 +67,7 @@ Implementation of State Machine Pattern in JavaScript.
     ```javascript
     app.getCurrentStateName();          // => 'STATE_B', app is now in the STATE_B state
     ```
+
+### API Document
+
+TODO
