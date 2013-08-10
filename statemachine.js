@@ -3,8 +3,8 @@
 
     var prevStateMachine = global.StateMachine;
 
-    var StateMachine = global.StateMachine = {
-        __version__: '0.1.0',
+    var StateMachine = {
+        __version__: '0.1.1',
         __license__: 'MIT',
         __author__: 'Ye Liu',
         __contact__: 'yeliu@instast.com',
@@ -324,5 +324,19 @@
         StateMachine.changeState = changeState;
         StateMachine.doEntryAction = doEntryAction;
         StateMachine.doExitAction = doExitAction;
+    }
+
+    /* ----- Export to Global Object ----- */
+
+    if (typeof module !== 'undefined') {            // nodejs
+        for (var p in StateMachine) {
+            if (StateMachine.hasOwnProperty(p)) {
+                exports[p] = StateMachine[p];
+            }
+        }
+    } else if (typeof define !== 'undefined') {     // requirejs
+        define(StateMachine);
+    } else {
+        global.StateMachine = StateMachine;         // browser
     }
 })(this);
