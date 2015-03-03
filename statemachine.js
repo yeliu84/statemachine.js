@@ -4,7 +4,7 @@
     var prevStateMachine = global.StateMachine;
 
     var StateMachine = {
-        __version__: '0.1.1',
+        __version__: '0.1.2',
         __license__: 'MIT',
         __author__: 'Ye Liu',
         __contact__: 'yeliu@instast.com',
