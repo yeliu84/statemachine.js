@@ -8,7 +8,7 @@
         __license__: 'MIT',
         __author__: 'Ye Liu',
         __contact__: 'yeliu@instast.com',
-        __copyright__: 'Copyright (c) 2013 Ye Liu'
+        __copyright__: 'Copyright (c) 2015 Ye Liu'
     };
 
     StateMachine.noConflict = function() {
