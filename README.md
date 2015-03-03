@@ -11,13 +11,13 @@ Get Started
     ```javascript
     var app = {                     // host object for state machine
         states: [{                  // states definition
-            name: 'STATE_A'         // state name
-            entry: 'stateAEntry'    // state entry function
-            exit: 'stateAExit'      // state exit function
+            name: 'STATE_A',        // state name
+            entry: 'stateAEntry',   // state entry function
+            exit: 'stateAExit',     // state exit function
             transitions: [{         // transitions definition
-                trigger: 'event1'   // transition trigger
-                dest: 'STATE_B'     // transition destination
-                action: 'action1'   // transition action function
+                trigger: 'event1',  // transition trigger
+                dest: 'STATE_B',    // transition destination
+                action: 'action1',  // transition action function
                 guard: 'guard1'     // transition guard function
             }]
         }, {
