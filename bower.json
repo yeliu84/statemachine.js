@@ -1,0 +1,24 @@
+{
+  "name": "statemachinejs",
+  "main": "statemachine.js",
+  "version": "0.1.1",
+  "homepage": "https://github.com/jaux/statemachine.js",
+  "authors": [
+    "Ye Liu <yeliu@instast.com>"
+  ],
+  "description": "Implementation of State Machine Pattern in JavaScript.",
+  "keywords": [
+    "statemachine",
+    "statemachine.js",
+    "fsm",
+    "design-pattern"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "examples",
+    "karma.conf.js",
+    "spec.js",
+    "Makefile"
+  ]
+}
